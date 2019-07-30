@@ -22,6 +22,11 @@ fn main() {
                     .alias("service")
                     .help("service of server")
                     .takes_value(true))
+        .arg(Arg::with_name("count")
+                    .short("c")
+                    .long("count")
+                    .help("counts of tcping")
+                    .takes_value(true))
         .get_matches();
 
     let host = match matches.value_of("host") {
@@ -34,10 +39,12 @@ fn main() {
 
     let port = match matches.value_of("port") {
         Some(port) => port,
-        None => {
-            println!("cant't get server port, test default port 80");
-            "80"
-        },
+        None => "80",
+    };
+
+    let cnt = match matches.value_of("count") {
+        Some(count) => count.parse().unwrap(),
+        None => 8,
     };
 
     let sockets = match getaddrinfo(
@@ -78,20 +85,8 @@ fn main() {
     };
 
     for socket in sockets {
-
-        if socket.sockaddr.is_ipv4() {
-
-            print!("get ipv4 addr {} ", socket.sockaddr);
-
+        for _ in 0..cnt {
             handle_tcping(&socket)
-        }
-
-        if socket.sockaddr.is_ipv6() {
-
-            print!("get ipv6 addr {} ", socket.sockaddr);
-
-            handle_tcping(&socket)
-
         }
     }
 }
@@ -112,17 +107,17 @@ fn handle_tcping (socket: &AddrInfo) {
                         .unwrap()
                         .as_millis();
 
-                println!("connected {}ms", duration);
+                println!("connected to {} {}ms",  sockaddr, duration);
 
                 Ok(stream)
             },
             Err(err) => match err.kind() {
                 ErrorKind::TimedOut => {
-                    println!("connecting to server by ipv4 timeout");
+                    println!("connected to {} timeout", sockaddr);
                     Err(err)
                 },
                 _ => {
-                    println!("connecting to server by ipv4 failed");
+                    println!("connected to {} failed", sockaddr);
                     Err(err)
                 },
             },
