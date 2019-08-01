@@ -1,5 +1,5 @@
 use dns_lookup::{ getaddrinfo, SockType, AddrInfoHints, AddrInfo, LookupErrorKind };
-use std::io::{ self, ErrorKind };
+use std::io::{ ErrorKind };
 use std::net::{ TcpStream };
 use std::time::{ Duration, SystemTime };
 use std::process;
@@ -97,7 +97,7 @@ fn handle_tcping (socket: &AddrInfo) {
 
     let sys_time = SystemTime::now();
 
-    let _stream:Result<TcpStream, io::Error> =
+    let _stream =
         match TcpStream::connect_timeout(sockaddr, Duration::from_millis(2000)) {
             Ok(stream) => {
 
@@ -107,7 +107,7 @@ fn handle_tcping (socket: &AddrInfo) {
                         .unwrap()
                         .as_millis();
 
-                println!("connected to {} {}ms",  sockaddr, duration);
+                println!("{} connected to {} {}ms", stream.local_addr().unwrap(), sockaddr, duration);
 
                 Ok(stream)
             },
